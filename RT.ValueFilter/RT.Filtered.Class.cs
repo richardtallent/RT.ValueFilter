@@ -1,21 +1,22 @@
 using System;
+using System.Collections.Generic;
 /*
-	Copyright 2015 Richard S. Tallent, II
+Copyright 2015 Richard S. Tallent, II
 
-	Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
-	(the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge,
-	publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to
-	do so, subject to the following conditions:
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
+(the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge,
+publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to
+do so, subject to the following conditions:
 
-	The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 
-	THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-	MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
-	LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
-	CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE
+LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-
+[assembly:CLSCompliant(true)]
 namespace RT.ValueFilter {
 
 	/// <summary>
@@ -32,9 +33,9 @@ namespace RT.ValueFilter {
 	/// Note that if your chosen Filter would throw an exception for default(T), you MUST set a valid
 	/// initial value (either using the parameterized constructor, or an initializer).
 	/// </summary>
-	public class Filtered<T> {
+	public class Filtered<T> where T : IEquatable<T> {
 
-		private T value;
+		private T pvtValue;
 
 		/// <summary>
 		/// There is no parameterless constructor because we MUST validate the initial value (even if
@@ -43,17 +44,22 @@ namespace RT.ValueFilter {
 		/// calls will have an initializer to set the Filter, or that all subclass constructors will
 		/// call this base constructor to do so.
 		/// </summary>
-		public Filtered(Func<T, T> filter, T initialValue = default(T)) {
+		public Filtered(Func<T, T> filter, T initialValue) {
 			Filter = filter;
 			Value = initialValue;
+		}
+
+		public Filtered(Func<T, T> filter) {
+			Filter = filter;
+			Value = default(T);
 		}
 
 		/// <summary>
 		/// Never let a bad value be set. Usually cheaper to do this in the setter anyway.
 		/// </summary>
 		public T Value {
-			get { return value; }
-			set { this.value = Filter(value); }
+			get { return pvtValue; }
+			set { this.pvtValue = Filter(value); }
 		}
 
 		/// <summary>
@@ -61,11 +67,17 @@ namespace RT.ValueFilter {
 		/// </summary>
 		public Func<T, T> Filter { get; set; }
 
-		/// <summary>
-		/// Syntactic sugar for getting the underlying value.
-		/// </summary>
-		public static implicit operator T(Filtered<T> strongValue) {
-			return strongValue.Value;
+		public override int GetHashCode() {
+			return pvtValue.GetHashCode();
+		}
+
+		public override bool Equals(object obj) {
+			if(obj is FilteredStruct<T>) {
+				return EqualityComparer<T>.Default.Equals(this.Value, ((FilteredStruct<T>)obj).Value);
+			} else if(obj is T) {
+				return EqualityComparer<T>.Default.Equals(this.Value, (T)obj);
+			}
+			return false;
 		}
 
     }

@@ -44,7 +44,7 @@ namespace RT.ValueFilter {
 		/// shorter than the maximum. Note that this does NOT coalesce null values -- use EmptyIfNull 
 		/// before or after this if you want that behavior.
 		/// </summary>
-		public static string MaxLength(this string value, int maxLength) {
+		public static string TruncateAt(this string value, int maxLength) {
 			if(string.IsNullOrEmpty(value)) return value;
 			if(maxLength < 1) return string.Empty;
 			if(maxLength > value.Length) return value;
@@ -125,7 +125,7 @@ namespace RT.ValueFilter {
 		/// whitelist of allowed tags *and* attributes (which is outside the scope of this project but
 		/// could be implemented as a Filter).
 		/// </summary>
-		public static string NoJavascript(this string value) {
+		public static string NoScripts(this string value) {
 			const string pattern = @"(?:javascript:|onclick|ondblclick|onblur|onchange|oncontextmenu|onfocus|ondrag|ondrop|onmouse)";
 			var re = new Regex(pattern, RegexOptions.IgnoreCase & RegexOptions.Compiled);
 
@@ -158,11 +158,15 @@ namespace RT.ValueFilter {
 		/// doubly true if you call HtmlDecode *after* this, to avoid tags being "created" by using 
 		/// &gt; / &lt; or numeric equivalents.
 		/// </summary>
-		public static string NoHtmlTags(this string value, bool strict = true) {
+		public static string NoHtmlTags(this string value, bool strict) {
 			var pattern = strict ?
 				@"<[^<>]*(?:[<>]|$)"
 				: @"<[^<> 0-9=+\(\[\{Σ±-]+(?:[<>]|$)";
 			return Regex.Replace(value, pattern, string.Empty, RegexOptions.Compiled);
+		}
+
+		public static string NoHtmlTags(this string value) {
+			return value.NoHtmlTags(strict: true);
 		}
 
 	}

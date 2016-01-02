@@ -40,7 +40,7 @@ In most situations, you'll want to simply use the generic class or struct and sp
     private Filtered<string> name = new Filtered<string>(MyFilters.NameFilter);
 
     public string Name {
-		get { return name; }			// Gets the current value (w/implicit conversion sugar)
+		get { return name.Value; }		// Gets the current value
 		set { name.Value = value; }		// Calls the filter while setting the value
     }
 
@@ -98,7 +98,7 @@ SHOULD MY PUBLIC PROPERTIES USE THE FILTERED<> TYPES?
 
 You could expose your properties as their Filtered<T> type, but I wouldn't suggest it. Exposing a mutable `struct` is asking for trouble, as is exposing an object that someone could set to null or swap out your logic from outside the object.
 
-Instead, I recommend making your properties use the underlying type (string, int, etc.). Your getter code will be the same either way (due to implicit conversion from Filtered<T> to T, and the setter code is also trivial. Exposing the native types is also friendlier to calling or reflecting code, especially OR/M or JSON libraries, and allows you to change the filter implementations out without changing your public interface.
+Instead, I recommend making your properties use the underlying type (string, int, etc.). The getter/setter code in both cases is trivial. Exposing the native types is also friendlier to calling or reflecting code, especially OR/M or JSON libraries, and allows you to change the filter implementations out without changing your public interface.
 
 CONTRIBUTING
 ============
