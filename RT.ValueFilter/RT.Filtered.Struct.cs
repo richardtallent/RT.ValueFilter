@@ -25,7 +25,7 @@ namespace RT.ValueFilter {
 	/// fields (and you should be in the habit, even privately, of accessing their inner value 
 	/// through the exposed property getter, not messing with the struct directly.)
 	/// </summary>
-	public struct FilteredStruct<T> where T : IEquatable<T> {
+	public struct FilteredStruct<T> : IEquatable<FilteredStruct<T>> {
 
 		private T pvtValue;
 
@@ -48,6 +48,10 @@ namespace RT.ValueFilter {
 
 		public override int GetHashCode() {
 			return pvtValue.GetHashCode();
+		}
+
+		public bool Equals(FilteredStruct<T> other) {
+			return EqualityComparer<T>.Default.Equals(this.Value, ((FilteredStruct<T>)other).Value);
 		}
 
 		public override bool Equals(object obj) {

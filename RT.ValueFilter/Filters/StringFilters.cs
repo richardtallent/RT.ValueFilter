@@ -57,7 +57,7 @@ namespace RT.ValueFilter {
 		/// <summary>
 		/// Convert all whitespace or underscore sequences to a single space.
 		/// </summary>
-		public static string CollapseWhitespace(this string value) {
+		public static string CollapseWhiteSpace(this string value) {
 			return Regex.Replace(value, @"[_\s]+", " ", RegexOptions.Compiled);
 		}
 
@@ -109,7 +109,7 @@ namespace RT.ValueFilter {
 			return Regex.Replace(value, @"\W", string.Empty, RegexOptions.Compiled);
 		}
 
-		public static string NoWhitespace(this string value) {
+		public static string NoWhiteSpace(this string value) {
 			return Regex.Replace(value, @"\s", string.Empty, RegexOptions.Compiled);
 		}
 
