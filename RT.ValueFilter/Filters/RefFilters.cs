@@ -1,4 +1,5 @@
-﻿/*
+﻿using System;
+/*
 	Copyright 2015 Richard S. Tallent, II
 
 	Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files
@@ -14,7 +15,6 @@
 	CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-
 namespace RT.ValueFilter {
 
 	/// <summary>
@@ -26,8 +26,22 @@ namespace RT.ValueFilter {
 	/// </summary>
 	public static class RefFilters {
 
+		/// <summary>
+		/// If <paramref name="value"/> is null, instantiates a new object and returns it.
+		/// If not, returns the value.
+		/// </summary>
+		/// <typeparam name="T">Must be a class, not a nullable value type.</typeparam>
 		public static T NewIfNull<T>(this T value) where T : class, new() {
 			return value ?? new T();
+		}
+
+		/// <summary>
+		/// If <paramref name="value"/> is null, throws an exception.
+		/// </summary>
+		/// <typeparam name="T">Must be a class, not a nullable value type.</typeparam>
+		public static T ErrorIfNull<T>(this T value) where T : class {
+			if(value == null) throw new ArgumentNullException(nameof(value));
+			return value;
 		}
 
 	}

@@ -20,10 +20,10 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("RT.ValueFilter")]
-[assembly: AssemblyDescription("Utilities to values assigned to variables and fields are valid. MIT license.")]
+[assembly: AssemblyTitle("RT.ValueFilter.Test")]
+[assembly: AssemblyDescription("Unit tests for the RT.ValueFilter library.")]
 [assembly: AssemblyCompany("Richard Tallent")]
-[assembly: AssemblyProduct("RT.ValueFilter")]
+[assembly: AssemblyProduct("RT.ValueFilter.Test")]
 [assembly: AssemblyCopyright("Copyright © 2015")]
 [assembly: AssemblyMetadata("License", "MIT (https://opensource.org/licenses/MIT)")]
 [assembly: AssemblyMetadata("Repository", "https://github.com/richardtallent/RT.ValueFilter")]
@@ -31,7 +31,7 @@ using System.Runtime.InteropServices;
 [assembly: CLSCompliant(true)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("e3a3f879-545a-442a-962f-d9ca825b0aeb")]
+[assembly: Guid("de91df4f-6e3b-4e7a-8085-589e412591ff")]
 
 // Version information for an assembly consists of the following four values:
 //
@@ -43,5 +43,5 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
-[assembly: AssemblyVersion("1.1.0.*")]
-[assembly: AssemblyFileVersion("1.1.0.0")]
+[assembly: AssemblyVersion("1.0.0.0")]
+[assembly: AssemblyFileVersion("1.0.0.0")]

@@ -14,15 +14,23 @@
 	CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-
 namespace RT.ValueFilter {
 
+	/// <summary>
+	/// Common useful filters for `int` values
+	/// </summary>
 	public static class IntFilters {
 
+		/// <summary>
+		/// Sets the <paramref name="value"/> to <paramref name="minValue"/> if it is less than that value.
+		/// </summary>
 		public static int AtLeast(this int value, int minValue) {
 			return (value.CompareTo(minValue) < 0) ? minValue : value;
 		}
 
+		/// <summary>
+		/// Sets the <paramref name="value"/> to <paramref name="maxValue"/> if it is greater than that value.
+		/// </summary>
 		public static int NotMoreThan(this int value, int maxValue) {
 			return (value.CompareTo(maxValue) > 0) ? maxValue : value;
 		}
@@ -30,7 +38,7 @@ namespace RT.ValueFilter {
 		/// <summary>
 		/// Within the Gregorian calendar range for a Month value
 		/// </summary>
-		public static int InMonthRange(this int value) {
+		public static int ToMonthRange(this int value) {
 			return value.AtLeast(1).NotMoreThan(12);
 		}
 

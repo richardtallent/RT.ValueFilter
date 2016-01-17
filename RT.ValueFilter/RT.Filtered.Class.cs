@@ -16,7 +16,6 @@ LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRA
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-[assembly:CLSCompliant(true)]
 namespace RT.ValueFilter {
 
 	/// <summary>
@@ -36,6 +35,7 @@ namespace RT.ValueFilter {
 	public class Filtered<T> where T : IEquatable<T> {
 
 		private T pvtValue;
+		private Func<T, T> pvtFilter;
 
 		/// <summary>
 		/// There is no parameterless constructor because we MUST validate the initial value (even if
@@ -45,12 +45,15 @@ namespace RT.ValueFilter {
 		/// call this base constructor to do so.
 		/// </summary>
 		public Filtered(Func<T, T> filter, T initialValue) {
-			Filter = filter;
+			pvtFilter = filter;
 			Value = initialValue;
 		}
 
+		/// <summary>
+		/// Constructor that uses default(T) (filtered) for the initial value.
+		/// </summary>
 		public Filtered(Func<T, T> filter) {
-			Filter = filter;
+			pvtFilter = filter;
 			Value = default(T);
 		}
 
@@ -59,18 +62,35 @@ namespace RT.ValueFilter {
 		/// </summary>
 		public T Value {
 			get { return pvtValue; }
-			set { this.pvtValue = Filter(value); }
+			set { this.pvtValue = pvtFilter(value); }
 		}
 
 		/// <summary>
 		/// Here is where your magic is injected.
 		/// </summary>
-		public Func<T, T> Filter { get; set; }
+		public Func<T, T> Filter {
+			get {
+				return pvtFilter;
+			}
+			set {
+				pvtFilter = value.ErrorIfNull();
+				// New Filter should be applied to the existing Value
+				Value = pvtValue;
+			}
+		}
 
+		/// <summary>
+		/// Recommended for IEquatable. Assumes that these should only be compared based on their
+		/// value, not their filters. Also assumes they are not null.
+		/// </summary>
 		public override int GetHashCode() {
 			return pvtValue.GetHashCode();
 		}
 
+		/// <summary>
+		/// Compares the inner value of this to another value, or to the value of another FilteredStruct
+		/// of the same type. Assumes the filter should not be part of the comparison.
+		/// </summary>
 		public override bool Equals(object obj) {
 			if(obj is FilteredStruct<T>) {
 				return EqualityComparer<T>.Default.Equals(this.Value, ((FilteredStruct<T>)obj).Value);

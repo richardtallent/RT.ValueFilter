@@ -15,39 +15,47 @@
 	CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-
 namespace RT.ValueFilter {
 
+	/// <summary>
+	/// Common useful filters for DateTime values
+	/// </summary>
 	public static class DateTimeFilters {
 
 		private static DateTime Year1900 = new DateTime(1900, 1, 1, 0, 0, 0, DateTimeKind.Utc);
 
+		/// <summary>
+		/// Sets the <paramref name="value"/> to <paramref name="minValue"/> if it is before that date.
+		/// </summary>
 		public static DateTime OnOrAfter(this DateTime value, DateTime minValue) {
 			return (value.ToUniversalTime().CompareTo(minValue.ToUniversalTime()) < 0) ? minValue : value;
 		}
 
-		public static DateTime Before(this DateTime value, DateTime maxValue) {
+		/// <summary>
+		/// Sets the <paramref name="value"/> to <paramref name="maxValue"/> if it is after that date.
+		/// </summary>
+		public static DateTime OnOrBefore(this DateTime value, DateTime maxValue) {
 			return (value.ToUniversalTime().CompareTo(maxValue.ToUniversalTime()) > 0) ? maxValue : value;
 		}
 
 		/// <summary>
 		/// Useful for restricting values that will be used in Excel or for `smalldatetime` SQL types
 		/// </summary>
-		public static DateTime AtLeast1900(this DateTime value) {
+		public static DateTime OnOrAfter1900(this DateTime value) {
 			return value.ToUniversalTime().OnOrAfter(Year1900);
 		}
 
 		/// <summary>
 		/// Useful for restricting search criteria and validating input
 		/// </summary>
-		public static DateTime NotFuture(this DateTime value) {
-			return value.ToUniversalTime().Before(DateTime.UtcNow);
+		public static DateTime BeforeFuture(this DateTime value) {
+			return value.ToUniversalTime().OnOrBefore(DateTime.UtcNow);
 		}
 
 		/// <summary>
 		/// Useful for restricting search criteria
 		/// </summary>
-		public static DateTime NoMoreThanYearAgo(this DateTime value, int years) {
+		public static DateTime NotMoreThanYearsAgo(this DateTime value, int years) {
 			var dMin = DateTime.UtcNow.AddYears(0 - years.AtLeastZero());
 			return value.OnOrAfter(dMin);
 		}
@@ -57,7 +65,7 @@ namespace RT.ValueFilter {
 		/// </summary>
 		public static DateTime AtLeastYearsAgo(this DateTime value, int years) {
 			var dMax = DateTime.UtcNow.AddYears(0 - years.AtLeastZero());
-			return value.Before(dMax);
+			return value.OnOrBefore(dMax);
 		}
 
 	}

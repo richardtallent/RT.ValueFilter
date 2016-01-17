@@ -16,7 +16,6 @@ LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRA
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 */
 
-
 namespace RT.ValueFilter {
 
 	/// <summary>
@@ -28,32 +27,65 @@ namespace RT.ValueFilter {
 	public struct FilteredStruct<T> : IEquatable<FilteredStruct<T>> {
 
 		private T pvtValue;
+		private Func<T, T> pvtFilter;
 
+		/// <summary>
+		/// Constructor
+		/// </summary>
 		public FilteredStruct(Func<T, T> validateFunction, T initialValue) {
-			Filter = validateFunction;
-			pvtValue = Filter(initialValue);
+			if(validateFunction == null) throw new ArgumentNullException(nameof(validateFunction));
+			pvtFilter = validateFunction;
+			pvtValue = pvtFilter(initialValue);
 		}
 
+		/// <summary>
+		/// Constructor
+		/// </summary>
 		public FilteredStruct(Func<T, T> validateFunction) {
-			Filter = validateFunction;
-			pvtValue = Filter(default(T));
+			if(validateFunction == null) throw new ArgumentNullException(nameof(validateFunction));
+			pvtFilter = validateFunction;
+			pvtValue = pvtFilter(default(T));
 		}
 
+		/// <summary>
+		/// The interior value.
+		/// </summary>
 		public T Value {
 			get { return pvtValue; }
-			set { this.pvtValue = Filter(value); }
+			set { this.pvtValue = pvtFilter(value); }
 		}
 
-		public Func<T, T> Filter { get; set; }
+		/// <summary>
+		/// Here is where your magic is injected.
+		/// </summary>
+		public Func<T, T> Filter {
+			get {
+				return pvtFilter;
+			}
+			set {
+				pvtFilter = value.ErrorIfNull();
+				// New Filter should be applied to the existing Value
+				Value = pvtValue;
+			}
+		}
 
+		/// <summary>
+		/// Recommended by IEquatable. Assumes only the value matters, not the filter.
+		/// </summary>
 		public override int GetHashCode() {
 			return pvtValue.GetHashCode();
 		}
 
+		/// <summary>
+		/// Assumes only the value matters, not the filter.
+		/// </summary>
 		public bool Equals(FilteredStruct<T> other) {
 			return EqualityComparer<T>.Default.Equals(this.Value, ((FilteredStruct<T>)other).Value);
 		}
 
+		/// <summary>
+		/// Assumes only the value matters, not the filter.
+		/// </summary>
 		public override bool Equals(object obj) {
 			if(obj is FilteredStruct<T>) {
 				return EqualityComparer<T>.Default.Equals(this.Value, ((FilteredStruct<T>)obj).Value);
@@ -63,10 +95,16 @@ namespace RT.ValueFilter {
 			return false;
 		}
 
+		/// <summary>
+		/// Assumes only the value matters, not the filter.
+		/// </summary>
 		public static bool operator ==(FilteredStruct<T> left, FilteredStruct<T> right) {
 			return left.Equals(right);
 		}
 
+		/// <summary>
+		/// Assumes only the value matters, not the filter.
+		/// </summary>
 		public static bool operator !=(FilteredStruct<T> left, FilteredStruct<T> right) {
 			return !left.Equals(right);
 		}
