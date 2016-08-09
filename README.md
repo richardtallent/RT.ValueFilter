@@ -1,32 +1,25 @@
 WHAT IS RT.VALUEFILTER?
 =======================
-`RT.ValueFilter` is a library that allows you to quickly and easily constrain the value of a variable. It's a prophylactic of sorts, a "firewall" against invalid data.
+`RT.ValueFilter` is a library that allows you to reliably constrain the the value of any variable.
 
-One of the limitations of using the native .NET value and reference types (`int`, `string`, etc.) is that they are, *in a sense*, loosely-typed. By this, I mean that the *logial type* of our variables rarely would allow every value these base types are capable of storing, but we use them as *surrogates* for the "real" type we are describing.
+The native types (`int`, `string`, etc.) we rely on in "strongly-typed" languages like C# are *surrogates* for the types we *actually* want to store. The *actual* types we need rarely allow the full range of values permissible using these base types.
 
-For example, we might use an `int` instance for a variable called Age, but logically, this variable should only store positive values, and there may very well be a lower and upper logical limit. Allowing this variable to store any valid `int` value promiscuously can result in undetected bad data or malicious abuse. Sure, `byte` or `uint` might be *closer* to our intent, but they would still be an imperfect match.
+For example, we might use an `int` to store a human "age" field, but logically, there will be a logical lower bound (say, 0) and a logical upper bound (say, 120). Allowing such a field to store *any* `int` value can result in undetected bad data or malicious abuse. Sure, `byte` or `uint` might be *closer* to our intent, but they would still be an imperfect match. Likewise, we may use `string` for many properties where we don't want nulls, 2GB lengths, or other values allowed by `string`.
 
-Likewise, a `string` can be `null`, can be any length up to around 2GB (or larger in some cases), and can store any Unicode endpoint. By contrast, many of variables we assign to type `string` should be significantly more limited in their length or allowed characters, or they should never be null.
+We generally use public getters and/or setters to ensure that our properties' values are valid, but this leaves our backing fields vulnerable to code that bypasses our setters, or to invalid default values.
 
-Often, these limits we wish to place on a value don't really rise to the level of raising an exception when there is an issue, they can simply be modified to the correct value.
+The purpose of RT.ValueFilter is to provide a reliable, consistent mechanism for restricting a property's value at the point of storage (the private backing field) rather than at the point of access. It "wraps" the type we use for storage with a validation function to ensure that bad values are either fixed or exceptions are thrown.
 
-On the user-facing side, we can and should provide visual field validation so users can't shoot themselves (or us) in the foot. The same goes for APIs that a user (or person with malicious intent) could access.
+Advantages of this approach include:
 
-However, we cannot rely on the UI or API layer to protect ourselves from invalid values. Even trusting our public property setters is problematic, as our own code can still access the private backing fields, and could set a bad value based on data coming in from a database, or another API, or an algorithm that has an edge case we didn't anticipate. (This answers the question that inevitably comes up of "isn't this why we have property setters in the first place?".)
-
-Unfortunately, many of the types we might want to restrict or filter values for cannot be inherited, so we can't *directly* override them to only accept an appropriate subset of values.
-
-This library is intended to be a reliable, low-overhead, consistent mechanism that allows you to wrap any variable with a set of filters that will always be applied to the value. You can create filters to respond to invalid incoming values by replacing or transforming them into valid values, throwing an exception, logging them, or performing any other desired action.
-
-The end result is that you have a strong*er* type that more closely resembles the logical meaning of your variable, and you can build a library of filters that you can use across your project.
-
-STATUS
-======
-This library is an experiment for a new personal project. I've been doing something like this ad-hoc here and there in my work, but this library is an attempt to clean up, centralize, and standardize how I do this. I'm just starting this process, but having the code up on GitHub and NuGet is convenient for me, so if someone else benefits from this library and/or wants to contribute, awesome!
+ 1. Validation will always occur, even when our class directly interacts with the backing field.
+ 2. Validation functions can be injected.
+ 3. Validation rules can be easily composed and reused among many properties in many classes.
+ 4. Validation functions can ensure that values are never null.
 
 IMPLEMENTATION
 ==============
-The mechanism for this is simple: an instance of a generic type (implemented both as a `class` and a `struct`, you choose which you prefer) *wraps* your actual variable. When creating the instance, you specify the interior type and a `Func<T, T>` delegate that will perform the filtering.
+The mechanism for this is simple: an instance of a generic type *wraps* your actual variable. When creating the instance, you specify the interior type and a `Func<T, T>` delegate that will perform the filtering. This is implemented as both a `class` and a `struct`, your choice.
 
 A small library of delegate filter functions is also provided. Each is implemented as an extension method, which allows them to be chained fluently. This simplifies creating anonymous `Func<T, T>` functions, and also encourages composing complex filters from simpler ones.
 
@@ -57,7 +50,7 @@ Now, the *private* value of `name` is fully protected from both internal and ext
 
 This includes *even the initial value*: since I didn't use the constructor that includes an initial value parameter, the constructor will use `default(T)`, but will pass it through the filter I provided in the first constructor argument. Because of this, I don't need "magic" initial values that pass muster, I can allow the filter to set the initial value to something befitting the logic. (In this example, `EmptyIfNull()` coalesces null values to empty strings, so that would end up being my initial value.)
 
-It's important to note that this doesn't replace the need for client-side validation and error messages, it just ensures that the values stored will *never* be invalid, even when client-side validation is bypassed or broken for some reason, or when values are modified by something other than the UI.
+It's important to note that this doesn't replace the need for client-side validation and error messages, it just ensures that the values stored will *never* be invalid, even when normal validation is bypassed or broken for some reason,.
 
 If I find myself using the same logic for other name-like fields, I can create a static function, then use it for any number of `Filtered<string>` instances:
 
@@ -114,11 +107,11 @@ You could also inherit from `Filtered<T>`, creating your own derived type with t
 
 (The above, of course, would not work if you choose the `struct` version.)
 
-This isn't limited to core .NET types like `int` and `string`... you can use it to validate *any* object, whether the type is part of the BCL, a third-party library, or your own classes. For example, if you have an email property that you want to ensure *only* gets set to your company's email domain, you could use something like this:
+This isn't limited to core .NET types like `int` and `string`... you can use it to validate *any* value or reference type. For example, if you have an email property that you want to ensure *only* gets set to your company's email domain, you could use something like this:
 
 	using System.Net.Mail;
 
-    public class MyFilters {
+    public static class MyFilters {
 
 		public static MailAddress NullIfNotCompanyEmail(this MailAddress address) {
 			if(address==null) return null;
@@ -128,13 +121,17 @@ This isn't limited to core .NET types like `int` and `string`... you can use it 
 
 	}
 
+STATUS
+======
+This library is an experiment for a new personal project. I've been doing something like this ad-hoc here and there in my work, but this library is an attempt to clean up, centralize, and standardize how I do this. I'm just starting this process, but having the code up on GitHub and NuGet is convenient for me, so if someone else benefits from this library and/or wants to contribute, awesome!
+
 USAGE
 ================
 My use of this library is mostly limited to private fields, usually ones that are backing public properties. I prefer using `readonly FilteredStruct<T>` for this, as they don't have the additional (albeit tiny) overhead of an object.
 
-I wouldn't suggest making the `Filtered<T>` types public. Using the underlying type is a better choice, as it will be more compatible with OR/M or serialization libraries, and will allow you to change the filter implementation without changing your interface.
+I wouldn't suggest making the `Filtered<T>` types public. Using the underlying type is a better choice.
 
-As for defining the filters, I tend to use one-off anonymous functions. For filters (or parts of them) I might reuse, I create static methods in a static utility class.
+As for defining the filters, I tend to use one-off anonymous functions. I collect the filters I might reuse in a static utility class.
 
 WHY NOT JUST USE A CLASS WITH A VIRTUAL FILTER METHOD?
 ======================================================
@@ -176,15 +173,15 @@ Counter-examples:
 
 Some of these counter-examples are from my own earlier code. :)
 
+VERSION HISTORY
+===============
+2016-01-17	1.1.0	Initial Nuget release
+2016-08-09	1.2.0	Upgrade to .NET Core 1.0, cleanup, add (mostly empty) test project, reorg so both class and struct are named Filtered<T>
+
 CONTRIBUTING
 ============
-This is a very new library. It could use:
- - More unit tests
- - More *generally-useful* filters
- - Bug fixes
-
-Guidelines for pull requests:
- - Please limit code to the .NET Core.
+This library is very new. Additional unit tests and generally-useful filters welcome. For pull requests:
+ - Please limit code to .NET Core compatibility (though additional targets are welcome).
  - Please use similar code formatting (same-line "{"), tabs, etc.).
  - If your filters make any culture/region assumptions, please document them.
  - All contributions should be made under the same license as this software (MIT).
@@ -199,7 +196,7 @@ Code of Conduct
 
 LICENSE (MIT "Expat")
 =====================
-Copyright 2015 Richard S. Tallent, II
+Copyright 2015-2016 Richard S. Tallent, II
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
