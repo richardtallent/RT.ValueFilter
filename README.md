@@ -175,8 +175,8 @@ Some of these counter-examples are from my own earlier code. :)
 
 VERSION HISTORY
 ===============
-2016-01-17	1.1.0	Initial Nuget release
-2016-08-09	1.2.0	Upgrade to .NET Core 1.0, cleanup, add (mostly empty) test project, reorg so both class and struct are named Filtered<T>
+ -  2016-01-17	1.1.0	Initial Nuget release
+ -  2016-08-09	1.2.0	Upgrade to .NET Core 1.0, cleanup, add (mostly empty) test project, reorg so both class and struct are named Filtered<T>
 
 CONTRIBUTING
 ============
