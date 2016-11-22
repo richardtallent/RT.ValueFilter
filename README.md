@@ -177,6 +177,7 @@ VERSION HISTORY
 ===============
  -  2016-01-17	1.1.0	Initial Nuget release
  -  2016-08-09	1.2.0	Upgrade to .NET Core 1.0, cleanup, add (mostly empty) test project, reorg so both class and struct are named Filtered<T>
+ -  2016-11-22  1.2.1   Upgrade to .NET Core 1.1 with multi-target for 4.5.1. Remove Regex compiled option (not supported in .NET Core?)
 
 CONTRIBUTING
 ============
@@ -187,6 +188,7 @@ This library is very new. Additional unit tests and generally-useful filters wel
  - All contributions should be made under the same license as this software (MIT).
 
 Code of Conduct
+---------------
  1. Be nice.
  2. Give others the benefit of the doubt.
  3. If someone tells you you're being a jerk, assume they tried really hard to follow (2).
