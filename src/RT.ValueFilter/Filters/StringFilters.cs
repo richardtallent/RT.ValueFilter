@@ -61,28 +61,28 @@ namespace RT.ValueFilter {
 		/// Convert all whitespace or underscore sequences to a single space.
 		/// </summary>
 		public static string CollapseWhiteSpace(this string value) {
-			return Regex.Replace(value, @"[_\s]+", " ", RegexOptions.Compiled);
+			return Regex.Replace(value, @"[_\s]+", " ");
 		}
 
 		/// <summary>
 		/// Removes control characters -- almost always a good idea.
 		/// </summary>
 		public static string RemoveControlChars(this string value) {
-			return Regex.Replace(value, @"[\u0000-\u0008\u000B\u000C\u000E-\u001F]", string.Empty, RegexOptions.Compiled);
+			return Regex.Replace(value, @"[\u0000-\u0008\u000B\u000C\u000E-\u001F]", string.Empty);
 		}
 
 		/// <summary>
 		/// Note that this is ALL digit characters, not just 0-9
 		/// </summary>
 		public static string RemoveNonDigits(this string value) {
-			return Regex.Replace(value, @"\D", string.Empty, RegexOptions.Compiled);
+			return Regex.Replace(value, @"\D", string.Empty);
 		}
 
 		/// <summary>
 		/// Only Arabic numerals, i.e., 0-9. This is probably the droid you're looking for.
 		/// </summary>
 		public static string KeepOnlyArabicDigits(this string value) {
-			return Regex.Replace(value, @"[^0-9]", string.Empty, RegexOptions.Compiled);
+			return Regex.Replace(value, @"[^0-9]", string.Empty);
 		}
 
 		/// <summary>
@@ -105,21 +105,21 @@ namespace RT.ValueFilter {
 		/// names in most cultures.
 		/// </summary>
 		public static string KeepNameCharsOnly(this string value) {
-			return Regex.Replace(value, @"[^\p{Ll}\p{Lu}\p{Lt}\p{Lo}\p{Lm}\u00aa\u00ba\.\u1d43-\u1d63,0-9 ’'\u2160-\u216C-]", string.Empty, RegexOptions.Compiled);
+			return Regex.Replace(value, @"[^\p{Ll}\p{Lu}\p{Lt}\p{Lo}\p{Lm}\u00aa\u00ba\.\u1d43-\u1d63,0-9 ’'\u2160-\u216C-]", string.Empty);
 		}
 
 		/// <summary>
 		/// Removes all but "word" characters (letters, digits, underscore, and a few other odds and ends).
 		/// </summary>
 		public static string KeepWordCharsOnly(this string value) {
-			return Regex.Replace(value, @"\W", string.Empty, RegexOptions.Compiled);
+			return Regex.Replace(value, @"\W", string.Empty);
 		}
 
 		/// <summary>
 		/// Removes all whitespace characters.
 		/// </summary>
 		public static string RemoveWhiteSpace(this string value) {
-			return Regex.Replace(value, @"\s", string.Empty, RegexOptions.Compiled);
+			return Regex.Replace(value, @"\s", string.Empty);
 		}
 
 		/// <summary>
@@ -136,7 +136,7 @@ namespace RT.ValueFilter {
 		/// </summary>
 		public static string RemoveHtmlScripts(this string value) {
 			const string pattern = @"(?:javascript:|onclick|ondblclick|onblur|onchange|oncontextmenu|onfocus|ondrag|ondrop|onmouse)";
-			var re = new Regex(pattern, RegexOptions.IgnoreCase & RegexOptions.Compiled);
+			var re = new Regex(pattern, RegexOptions.IgnoreCase);
 
 			while(re.IsMatch(value)) {
 				value = re.Replace(value, string.Empty);
@@ -150,7 +150,7 @@ namespace RT.ValueFilter {
 		/// for situations where even an attempted HTML Entity reference would be disallowed.
 		/// </summary>
 		public static string RemoveHtmlEntityReferences(this string value) {
-			return Regex.Replace(value, @"&(?:#x?[0-9]+|[A-Za-z][A-Za-z0-9]+);", string.Empty, RegexOptions.Compiled);
+			return Regex.Replace(value, @"&(?:#x?[0-9]+|[A-Za-z][A-Za-z0-9]+);", string.Empty);
 		}
 
 		/// <summary>
@@ -172,7 +172,7 @@ namespace RT.ValueFilter {
 			var pattern = strict ?
 				@"<[^<>]*(?:[<>]|$)"
 				: @"<[^<> 0-9=+\(\[\{Σ±-]+(?:[<>]|$)";
-			return Regex.Replace(value, pattern, string.Empty, RegexOptions.Compiled);
+			return Regex.Replace(value, pattern, string.Empty);
 		}
 
 		/// <summary>
