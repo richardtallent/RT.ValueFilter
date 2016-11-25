@@ -43,7 +43,7 @@ Let's say my `Customer` class has a `string` property called `Name`, and I want 
 			);
 
 		public string Name {
-			get return name; // implicit conversion syntactic sugar 
+			get { return name; } // implicit conversion syntactic sugar 
 			set { name.Value = value; }
 		}
 
