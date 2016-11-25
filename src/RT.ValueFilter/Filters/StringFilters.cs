@@ -1,4 +1,5 @@
-﻿using System.Text.RegularExpressions;
+﻿using System;
+using System.Text.RegularExpressions;
 /*
 	Copyright 2015 Richard S. Tallent, II
 
@@ -183,6 +184,22 @@ namespace RT.ValueFilter {
 		public static string RemoveHtmlTags(this string value) {
 			return value.RemoveHtmlTags(strict: true);
 		}
+
+		public static string ErrorIfShorterThan(this string s, int length) {
+			if(s.Length < length) throw new ArgumentException();
+			return s;
+		}
+
+		public static string ErrorIfLongerThan(this string s, int length) {
+			if(s.Length > length) throw new ArgumentException();
+			return s;
+		}
+
+		public static string ErrorIfNotRegExMatch(this string s, string pattern) {
+			if(!Regex.IsMatch(s, pattern)) throw new ArgumentException();
+			return s;
+		}
+
 
 	}
 

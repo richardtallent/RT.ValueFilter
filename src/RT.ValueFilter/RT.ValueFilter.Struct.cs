@@ -99,6 +99,20 @@ namespace RT.ValueFilter.Struct {
 		/// </summary>
 		public static bool operator !=(Filtered<T> left, Filtered<T> right) => !left.Equals(right);
 
+		/// <summary>
+		/// Implicitly convert to the underlying type
+		/// </summary>
+		public static implicit operator T(Filtered<T> value) {
+			return value.Value;
+		}
+
+		/// <summary>
+		/// This function returns a *new* instance with the same filter but a new value set.
+		/// </summary>
+
+
+
+
 	}
 
 }

@@ -3,6 +3,9 @@
     "command": "dotnet",
     "isShellCommand": true,
     "args": [],
+    "options":{
+        "cwd": "${workspaceRoot}/src/RT.ValueFilter"
+    },
     "tasks": [
         {
             "taskName": "build",

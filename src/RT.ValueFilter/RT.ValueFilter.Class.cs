@@ -91,6 +91,13 @@ namespace RT.ValueFilter.Class {
 			return false;
 		}
 
+		/// <summary>
+		/// Implicitly convert to the underlying type
+		/// </summary>
+		public static implicit operator T(Filtered<T> value) {
+			return value.Value;
+		}
+
     }
 
 }

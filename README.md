@@ -1,33 +1,36 @@
-WHAT IS RT.VALUEFILTER?
+THE STRONGLY-TYPED MYTH
 =======================
-`RT.ValueFilter` is a library that allows you to reliably constrain the the value of any variable.
+While C# is *capable* of being strongly typed, we often "cheat" by using *relatively* weak types like `int` and `string` to back properties that are, logically, *not* general integer or string values.
 
-The native types (`int`, `string`, etc.) we rely on in "strongly-typed" languages like C# are *surrogates* for the types we *actually* want to store. The *actual* types we need rarely allow the full range of values permissible using these base types.
+For example, we might use `int` to store a `Person.Age` backing field, because `int` will store any human age and is a convenient type to work with. While our actual acceptable range for `Age` might be, say, 0 to 120, `int` values can be negative or can exceed 2 billion. Allowing the backing field to store *any* integer value could result in undetected bad data or malicious abuse. We could choose a surrogate that *more closely* matches the intended range of values (say, `byte`), but the match is still imperfect.
 
-For example, we might use an `int` to store a human "age" field, but logically, there will be a logical lower bound (say, 0) and a logical upper bound (say, 120). Allowing such a field to store *any* `int` value can result in undetected bad data or malicious abuse. Sure, `byte` or `uint` might be *closer* to our intent, but they would still be an imperfect match. Likewise, we may use `string` for many properties where we don't want nulls, 2GB lengths, or other values allowed by `string`.
+`String` is perhaps the most abused general-purpose type. Strings can have null values, empty values, lengths up to 2GB, and can contain any Unicode end point at any position in its value, but it is *exceedingly rare* that you woudl want such flexibility in a real-world property.
 
-We generally use public getters and/or setters to ensure that our properties' values are valid, but this leaves our backing fields vulnerable to code that bypasses our setters, or to invalid default values.
+To alleviate this issue, we of course add some validation logic to our public getters or setters, but this presents its own issues, such as:
 
-The purpose of RT.ValueFilter is to provide a reliable, consistent mechanism for restricting a property's value at the point of storage (the private backing field) rather than at the point of access. It "wraps" the type we use for storage with a validation function to ensure that bad values are either fixed or exceptions are thrown.
+1. What if our code also operates on the private backing field and sets a bad value or retrieves an invalid value (such as null)?
+2. How can we effectively reuse and compose business logic among fields in many classes?
+3. How can we efficiently inject some of the validation logic for situations where the logic should differ depending on the situation?
 
-Advantages of this approach include:
+There are a dozen ways to deal with these issues, `RT.ValueFilter` is my own solution. I hope it will be useful to others.
 
- 1. Validation will always occur, even when our class directly interacts with the backing field.
- 2. Validation functions can be injected.
- 3. Validation rules can be easily composed and reused among many properties in many classes.
- 4. Validation functions can ensure that values are never null.
+HOW DOES IT WORK?
+=================
+`Filtered<T>` is a generic type (both `struct` and `class` implementations are provided, in separate namespaces) that *wraps* a type (such as `int` or `string`) with your chosen validation logic ("filter"), enforcing stronger rules around the allowed values for those variables. By using these as your private backing fields, you can:
+- greatly simplify your public property logic,
+- reuse and compose validation rules among fields in many classes,
+- provide suitable initial and default values
+- enforce the same logic for private, protected, and public access to your fields.
 
-IMPLEMENTATION
-==============
-The mechanism for this is simple: an instance of a generic type *wraps* your actual variable. When creating the instance, you specify the interior type and a `Func<T, T>` delegate that will perform the filtering. This is implemented as both a `class` and a `struct`, your choice.
+When you create an `Filtered<T>` instance, you specify (1) the interior type used to store the value and (2) a `Func<T, T>` delegate that will perform the filtering.
 
-A small library of delegate filter functions is also provided. Each is implemented as an extension method, which allows them to be chained fluently. This simplifies creating anonymous `Func<T, T>` functions, and also encourages composing complex filters from simpler ones.
+A small library of filter functions is also provided. Each is implemented as an extension method for fluent chaining, which simplifies composing your filter logic from a series of simpler rules.
 
 SHOW ME SOME CODE!
 ==================
 Let's say my `Customer` class has a `string` property called `Name`, and I want to limit the acceptable values. I could do something like this:
 
-	using RT.ValueFilter;
+	using RT.ValueFilter.Struct;
 
 	public class Customer {
 
@@ -40,17 +43,15 @@ Let's say my `Customer` class has a `string` property called `Name`, and I want 
 			);
 
 		public string Name {
-			get { return name.Value; }
+			get return name; // implicit conversion syntactic sugar 
 			set { name.Value = value; }
 		}
 
 	}
 
-Now, the *private* value of `name` is fully protected from both internal and external attempts to set it to a value that is not consistent with my logical definition of a "name."
+Now, even the *private* value behind `Name` is protected from all attempts to set it to a value that is not consistent with my logical definition of a "name."
 
-This includes *even the initial value*: since I didn't use the constructor that includes an initial value parameter, the constructor will use `default(T)`, but will pass it through the filter I provided in the first constructor argument. Because of this, I don't need "magic" initial values that pass muster, I can allow the filter to set the initial value to something befitting the logic. (In this example, `EmptyIfNull()` coalesces null values to empty strings, so that would end up being my initial value.)
-
-It's important to note that this doesn't replace the need for client-side validation and error messages, it just ensures that the values stored will *never* be invalid, even when normal validation is bypassed or broken for some reason,.
+This includes *the initial value*: I didn't use the constructor that includes an initial value parameter, so the constructor passes `default(T)` through the filter I provided. The filter then coalesces the default null value to empty (via `EmptyIfNull()`), so I don't have to provide a "magic" default value.
 
 If I find myself using the same logic for other name-like fields, I can create a static function, then use it for any number of `Filtered<string>` instances:
 
@@ -62,17 +63,17 @@ If I find myself using the same logic for other name-like fields, I can create a
 	    private Filtered<string> companyName = new Filtered<string>(MyFilters.NameFilter);
 
 		public string FirstName {
-			get { return firstName.Value; }
+			get { return firstName; }
 			set { firstName.Value = value; }
 		}
 
 		public string LastName {
-			get { return lastName.Value; }
+			get { return lastName; }
 			set { lastName.Value = value; }
 		}
 
 		public string CompanyName {
-			get { return companyName.Value; }
+			get { return companyName; }
 			set { companyName.Value = value; }
 		}
 
@@ -121,15 +122,13 @@ This isn't limited to core .NET types like `int` and `string`... you can use it 
 
 	}
 
-STATUS
-======
-This library is an experiment for a new personal project. I've been doing something like this ad-hoc here and there in my work, but this library is an attempt to clean up, centralize, and standardize how I do this. I'm just starting this process, but having the code up on GitHub and NuGet is convenient for me, so if someone else benefits from this library and/or wants to contribute, awesome!
-
 USAGE
 ================
 My use of this library is mostly limited to private fields, usually ones that are backing public properties. I prefer using `readonly FilteredStruct<T>` for this, as they don't have the additional (albeit tiny) overhead of an object.
 
 I wouldn't suggest making the `Filtered<T>` types public. Using the underlying type is a better choice.
+
+It's important to note that this doesn't replace the need for client-side validation and error messages, it just ensures that the values stored will *never* be invalid, even when normal validation is bypassed or broken for some reason.
 
 As for defining the filters, I tend to use one-off anonymous functions. I collect the filters I might reuse in a static utility class.
 
@@ -137,15 +136,15 @@ WHY NOT JUST USE A CLASS WITH A VIRTUAL FILTER METHOD?
 ======================================================
 I chose to use `Func<T, T>` for Filter instead of a virtual method for a few reasons:
 
-  1. I wanted the `struct` and `class` implementations to be as similar as possible, and the former, being sealed, can't have virtual methods.
+  1. I wanted the `struct` and `class` implementations to be as similar as possible, and `structs` can't have virtual methods.
 
-  2. C# only supports single inheritance, so passing in the filter encourages making the logic more composable and reusable than would be possible by overriding a method in a single inheritance chain.
+  2. C# only supports single inheritance, so injecting the filter in the constructor encourages making the logic more composable and reusable than would be possible by overriding a method in a single inheritance chain.
 
-  3. Injecting the filter allows for changing the filter based on the environment or runtime logic. For example, I might want to change the filter for a Phone Number field if the user changes the Country field. (If a new filter is assigned, it is applied to the existing value automatically.)
+  3. Injecting the filter allows for changing the filter based on the environment or runtime logic. For example, I might want to change the filter for a Phone Number field if the user changes the Country field. If a new filter is assigned, it is applied to the existing value automatically.
 
 NAMING CONVENTIONS
 ==================
-(These are just my initial thoughts to organize my own code, I'm very much open to suggestions here.)
+These are just my initial thoughts to organize my own code, I'm open to suggestions here.
 
 Filter functions should be named in a way that primarily describes *how they react* to the incoming value. They should usually start with a predicate, then some phrase describing the condition they are looking for.
 
@@ -165,7 +164,7 @@ If a predicate is not provided, the assumption should be that the value is chang
 
 Counter-examples:
 
- -  `NoHtml<string>` -- unclear if HTML tags found would be stripped, converted, or throw an exception.
+ -  `NoHtml<string>` -- unclear if HTML tags found would be stripped, converted, or result in an exception.
  -  `Clean<string>` -- unclear what is happening
  -  `ToMD5<string>` -- unclear if this is creating an MD5 hash of the input, validating that the input is one, or something else.
  -  `IsGuid<string>` -- unclear what would happen if it is not (return type is `string`, not `bool`).
@@ -178,14 +177,20 @@ VERSION HISTORY
  -  2016-01-17	1.1.0	Initial Nuget release
  -  2016-08-09	1.2.0	Upgrade to .NET Core 1.0, cleanup, add (mostly empty) test project, reorg so both class and struct are named Filtered<T>
  -  2016-11-22  1.2.2   Upgrade to .NET Core 1.1 with multi-target for 4.5.1. Remove Regex compiled option (not supported in .NET Core?)
+ -  2016-11-25  1.2.3   Update README, add more filters and tests, add implicit conversion for syntactic sugar.
+
+STATUS
+======
+I've been using logic like this ad-hoc in my work, but this library is an attempt to centralize both the filtering concepts and a library of useful value filters.
 
 CONTRIBUTING
 ============
 This library is very new. Additional unit tests and generally-useful filters welcome. For pull requests:
- - Please limit code to .NET Core compatibility (though additional targets are welcome).
- - Please use similar code formatting (same-line "{"), tabs, etc.).
+ - Please limit code to .NET Core 1.1 and .NET 4.5.1 compatibility.
+ - Please use similar code formatting (tabs, braces, etc.).
  - If your filters make any culture/region assumptions, please document them.
  - All contributions should be made under the same license as this software (MIT).
+ - I've been considering creating an immutable struct version. Opinions welcome.
 
 Code of Conduct
 ---------------
