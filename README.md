@@ -178,6 +178,7 @@ VERSION HISTORY
  -  2016-08-09	1.2.0	Upgrade to .NET Core 1.0, cleanup, add (mostly empty) test project, reorg so both class and struct are named Filtered<T>
  -  2016-11-22  1.2.2   Upgrade to .NET Core 1.1 with multi-target for 4.5.1. Remove Regex compiled option (not supported in .NET Core?)
  -  2016-11-25  1.2.3   Update README, add more filters and tests, add implicit conversion for syntactic sugar.
+ -  2017-04-04  1.2.4   Downgraded to csproj, targeting .NET Standard 1.1. Test project broken due to XUnit bug on OS X.
 
 STATUS
 ======
@@ -203,7 +204,7 @@ Code of Conduct
 
 LICENSE (MIT "Expat")
 =====================
-Copyright 2015-2016 Richard S. Tallent, II
+Copyright 2015-2017 Richard S. Tallent, II
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
 
