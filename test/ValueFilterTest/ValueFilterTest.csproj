@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <VersionPrefix>1.2.4</VersionPrefix>
-    <TargetFrameworks>netstandard1.5</TargetFrameworks>
+    <TargetFrameworks>netcoreapp1.1</TargetFrameworks>
     <DebugType>portable</DebugType>
     <AssemblyName>ValueFilterTest</AssemblyName>
     <PackageId>ValueFilterTest</PackageId>
