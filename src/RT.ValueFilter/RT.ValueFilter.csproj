@@ -4,9 +4,9 @@
     <Description>ValueFilter provides a straightforward, low-overhead mechanism for ensuring that variables (including private backing fields for your properties) can only contain valid data. See the GitHub site for more details.</Description>
     <Copyright>Copyright 2015-2016 Richard S. Tallent</Copyright>
     <AssemblyTitle>RT.ValueFilter</AssemblyTitle>
-    <VersionPrefix>1.2.4</VersionPrefix>
+    <VersionPrefix>2.0.0</VersionPrefix>
     <Authors>Richard Tallent</Authors>
-    <TargetFrameworks>netstandard1.1</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <PlatformTarget>anycpu</PlatformTarget>
     <AssemblyName>RT.ValueFilter</AssemblyName>
     <PackageId>RT.ValueFilter</PackageId>
