@@ -27,6 +27,9 @@ namespace Tests
 			.CollapseWhiteSpace()
 			.TruncateIfLongerThan(255);
 
+		public static int Min(this int i, int j) => Math.Min(i, j);
+		public static int Max(this int i, int j) => Math.Max(i, j);
+
 		public static string ValidateCASRN(this string s)
 		{
 			int sum = 0;
@@ -44,6 +47,14 @@ namespace Tests
 			return string.Empty;
 		}
 
+	}
+
+	public class LatLong
+	{
+		private Filtered<int> _lat = new Filtered<int>(v => v.Min(-90).Max(90));
+		private Filtered<int> _long = new Filtered<int>(v => v.Min(-180).Max(180));
+		public int Latitude { get => _lat; set => _lat.Value = value; }
+		public int Longitude { get => _long; set => _long.Value = value; }
 	}
 
 	public class Customer
