@@ -25,7 +25,6 @@ However, this is not a robust solution. A few caveats:
 2. Until the setter is called, `_age` has an illegal value. (This is contrived, but there are many properties whose `default<T>` would be a bad value.)
 3. If we have a number of classes that also have a human age field, we don't have a slick way of reusing that validation logic. Again, maybe a bit contrived for age, but not so unusual for fields like email addresses, postal codes, and names, which have complex validation logic that should be consistent across an application.
 4. What happens if we want to use dependency injection to allow validation to be situational? For example, choosing a validator for a phone number field based on the country selected.
-5. Explicitly-defined backing fields are cumbersome. That's why auto-implemented properties were invented.
 
 `String` is perhaps the most abused general-purpose type. Strings can have null values, empty values, lengths up to 2GB, and can contain any Unicode end point at any position, but it is *exceedingly rare* that you would want any string property to allow such flexibility.
 
@@ -34,7 +33,7 @@ There are many ways to work around these issues. This library, `RT.ValueFilter`,
 How Does it Work?
 =================
 `Filtered<T>` is a generic type (both `struct` and `class` implementations are provided, in separate namespaces) that *wraps* a type (such as `int` or `string`) with your chosen validation logic ("filter"), enforcing stronger rules around the allowed values for those variables. By using these as your private backing fields, you can:
-- greatly simplify your public property logic,
+- simplify your public property logic,
 - reuse and compose validation rules among fields in many classes,
 - provide suitable initial and default values,
 - enforce the same logic for private, protected, and public access to your fields.
@@ -49,14 +48,13 @@ Here's the example above, implemented using RT.ValueFilter:
 
 ```C#
 public class Customer {
-	public int Age { get; set; } = new Filtered<int>(value => Math.Min(Math.Max(0, value), 130));
+	private Filtered<int> _age = new Filtered<int>(value => Math.Min(Math.Max(0, value), 130));
+	public int Age { get => _age; set => _age.Value = value; }
 }
 ```
 
 Here's what we end up with:
-- A validated property is declared cleanly, with one line of code.
-- No explicit backing field.
-- Implicit conversion allows the public interface to be `int` while ensuring the field itself never stores an out-of-range value.
+- The public interface is still `int`, but the property (and its backing field) will never return an out-of-range value.
 - If using the `struct` version of `Filtered<int>`, the memory overhead is tiny over using a bare `int`.
 - The logic is only called during `Filtered<int>`'s setter and during construction, so `get` calls require no validation.
 - The filter can be extracted to a static class and reused across many properties in many classes.
@@ -64,7 +62,7 @@ Here's what we end up with:
 
 Let's look at a more complex example, using an extension method to extract and reuse some common string validation logic for names:
 ```C#
-public static class MyValidators {
+public static class Validators {
 	public static string NameValidator(this string s) => 
 		s.EmptyIfNull()
 		.KeepNameCharsOnly()
@@ -74,18 +72,23 @@ public static class MyValidators {
 }
 
 public class Customer {
-	public string FirstName { get; set; } = new Filtered<string>(value => value.NameValidator());
-	public string LastName { get; set; } = new Filtered<string>(value => value.NameValidator());
+	private Filtered<string> _firstName = new Filtered<string>(Validators.NameValidator);
+	private Filtered<string> _lastName = new Filtered<string>(Validators.NameValidator);
+
+	public string FirstName { get => _firstName; set => _firstName.Value = value; }
+	public string LastName { get => _lastName; set => _lastName.Value = value; }
 }
 
 public class Company {
-	public string Name { get; set; } = new Filtered<string>(value => value.NameValidator());
+	private Filtered<string> _name = new Filtered<string>(Validators.NameValidator);
+
+	public string LastName { get => _lastName; set => _lastName.Value = value; }
 }
 ```
 
 With very little effort, I can create a little library of useful validation functions and reuse them across an entire application, or even across many applications. DRY indeed!
 
-Even the default value is protected--properties using the `NameValidator` filer will always have a `string.Empty` value to start with, not `null`. This is because the `Filtered<T>` constructor sets the initial value by running `default<T>` through the provided filter. You can override the default value by providing a second argument to the constructor, and the initial value you provide will also go through the filter.
+Even the default value is protected--properties using the `NameValidator` filter will always have a `string.Empty` value to start with, not `null`. This is because the `Filtered<T>` constructor sets the initial value by running `default<T>` through the provided filter. You can override the default value by providing a second argument to the constructor, and the initial value you provide will also go through the filter.
 
 So, ensuring that nullable types (like `string`) are *never null* is incredibly easy, allowing you to avoid null-checking of those properties everywhere they are used.
 
@@ -101,28 +104,30 @@ public static class MyFilters {
 }
 ```
 
-You may be wondering why I included the class version. It's because with a class, you can easily create derived types of `Filtered<T>` with your logic already baked in. Here's the example from above for customer name, using a derived type:
+The advantage of the class implementation over struct is the ability to create derived types of `Filtered<T>` with your logic already baked in. Here's the example from above for customer name, using a derived type:
 
 ```C#
-public class NameString : Filtered<string> {
+public class NameString : RT.ValueFilter.Class.Filtered<string> {
 	public NameString() : base(
 		value => value.EmptyIfNull()
 		.KeepNameCharsOnly()
 		.Trim()
-		.CollapseWhitespace()
+		.CollapseWhiteSpace()
 		.TruncateIfLongerThan(255)
 	) {}
 }
 
 public class Customer {
-	public string FirstName { get; set; } = new NameString();
+	private NameString _name = new NameString()
+
+	public string FirstName { get => _name; set => _name.Value = value; }
 }
 ```
-You do incur extra memory overhead for wrapping the string object in another object, but the semantics are great!
+There is additional memory overhead for wrapping the string object in another object, but the semantics are arguably better. I'm considering dropping this implementation since I never actually use it.
 
 Usage
 ================
-Personally, I prefer using the `struct` implementation, using the base type for the public interface (as shown in the examples above).
+Personally, I prefer the `struct` implementation, using the underlying type for the public interface (as shown in the examples above).
 
 This isn't a replacement for client-side validation and error messages. It's simply a way to ensure that values stored will *never* be invalid, even if normal validation is bypassed or broken for some reason.
 

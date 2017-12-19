@@ -1,7 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Description>ValueFilter provides a straightforward, low-overhead mechanism for ensuring that variables (including private backing fields for your properties) can only contain valid data. See the GitHub site for more details.</Description>
+	<Title>RT.ValueFilter</Title>
+    <Description>ValueFilter provides a straightforward, low-overhead mechanism for ensuring that properties can only contain valid data. See the GitHub site for more details.</Description>
     <Copyright>Copyright 2015-2016 Richard S. Tallent</Copyright>
     <AssemblyTitle>RT.ValueFilter</AssemblyTitle>
     <VersionPrefix>2.0.0</VersionPrefix>
