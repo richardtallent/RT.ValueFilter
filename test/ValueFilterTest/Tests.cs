@@ -3,11 +3,9 @@ using Xunit;
 using RT.ValueFilter;
 using RT.ValueFilter.Struct;
 
-namespace Tests
-{
+namespace Tests {
 
-	public class NameString : RT.ValueFilter.Class.Filtered<string>
-	{
+	public class NameString : RT.ValueFilter.Class.Filtered<string> {
 		public NameString() : base(
 			value => value.EmptyIfNull()
 			.KeepNameCharsOnly()
@@ -18,8 +16,8 @@ namespace Tests
 		{ }
 	}
 
-	public static class Validators
-	{
+	public static class Validators {
+
 		public static string NameValidator(this string s) =>
 			s.EmptyIfNull()
 			.KeepNameCharsOnly()
@@ -30,8 +28,7 @@ namespace Tests
 		public static int Min(this int i, int j) => Math.Min(i, j);
 		public static int Max(this int i, int j) => Math.Max(i, j);
 
-		public static string ValidateCASRN(this string s)
-		{
+		public static string ValidateCASRN(this string s) {
 			int sum = 0;
 			if (string.IsNullOrEmpty(s)) return string.Empty;
 			var l = s.Length;
@@ -49,16 +46,14 @@ namespace Tests
 
 	}
 
-	public class LatLong
-	{
+	public class LatLong {
 		private Filtered<int> _lat = new Filtered<int>(v => v.Min(-90).Max(90));
 		private Filtered<int> _long = new Filtered<int>(v => v.Min(-180).Max(180));
 		public int Latitude { get => _lat; set => _lat.Value = value; }
 		public int Longitude { get => _long; set => _long.Value = value; }
 	}
 
-	public class Customer
-	{
+	public class Customer {
 		private Filtered<string> _firstName = new Filtered<string>(Validators.NameValidator);
 		private Filtered<string> _lastName = new Filtered<string>(Validators.NameValidator);
 		public string FirstName { get => _firstName; set => _firstName.Value = value; }
@@ -68,24 +63,19 @@ namespace Tests
 		public int Age { get => _age; set => _age.Value = value; }
 	}
 
-	public class FilterTests
-	{
+	public class FilterTests {
 
-		[Fact]
-		public void TestRemoveNonDigits()
-		{
+		[Fact] public void TestRemoveNonDigits() {
 			var t = "Hello world 123";
 			var f = new Filtered<string>(StringFilters.RemoveNonDigits, t);
-			Assert.Equal(f, "123");
+			Assert.Equal("123", f);
 		}
 
-		[Fact]
-		public void TestTrim()
-		{
+		[Fact] public void TestTrim() {
 			var o = new Customer();
 			Assert.False(o.FirstName == null);
 			o.FirstName = "  Richard  ";
-			Assert.Equal(o.FirstName, "Richard");
+			Assert.Equal("Richard", o.FirstName);
 		}
 
 	}

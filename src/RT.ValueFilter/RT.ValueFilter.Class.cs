@@ -53,17 +53,15 @@ namespace RT.ValueFilter.Class {
 		/// Never let a bad value be set. Usually cheaper to do this in the setter anyway.
 		/// </summary>
 		public T Value {
-			get { return pvtValue; }
-			set { this.pvtValue = pvtFilter(value); }
+			get => pvtValue;
+			set => this.pvtValue = pvtFilter(value);
 		}
 
 		/// <summary>
 		/// Here is where your magic is injected.
 		/// </summary>
 		public Func<T, T> Filter {
-			get {
-				return pvtFilter;
-			}
+			get => pvtFilter;
 			set {
 				if(value == null) throw new ArgumentNullException(nameof(Filter));
 				pvtFilter = value;
@@ -83,10 +81,11 @@ namespace RT.ValueFilter.Class {
 		/// of the same type. Assumes the filter should not be part of the comparison.
 		/// </summary>
 		public override bool Equals(object obj) {
-			if(obj is Filtered<T>) {
-				return EqualityComparer<T>.Default.Equals(this.Value, ((Filtered<T>)obj).Value);
-			} else if(obj is T) {
-				return EqualityComparer<T>.Default.Equals(this.Value, (T)obj);
+			if(obj is Filtered<T> objFilteredT) {
+				return EqualityComparer<T>.Default.Equals(this.Value, objFilteredT.Value);
+			} 
+			if(obj is T objT) {
+				return EqualityComparer<T>.Default.Equals(this.Value, objT);
 			}
 			return false;
 		}

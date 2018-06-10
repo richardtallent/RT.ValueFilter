@@ -39,7 +39,7 @@ namespace RT.ValueFilter.Struct {
 		public Filtered(Func<T, T> validateFunction, T initialValue = default(T)) {
 			// Struct won't allow calling the setter before the backing field is set, so
 			// the implementation is different than the class version.
-			if(validateFunction == null) throw new ArgumentNullException(nameof(validateFunction));
+			if (validateFunction == null) throw new ArgumentNullException(nameof(validateFunction));
 			pvtFilter = validateFunction;
 			pvtValue = default(T);
 			Value = initialValue;
@@ -49,19 +49,17 @@ namespace RT.ValueFilter.Struct {
 		/// Never let a bad value be set. Usually cheaper to do this in the setter anyway.
 		/// </summary>
 		public T Value {
-			get { return pvtValue; }
-			set { this.pvtValue = pvtFilter(value); }
+			get => pvtValue;
+			set => pvtValue = pvtFilter(value);
 		}
 
 		/// <summary>
 		/// Here is where your magic is injected.
 		/// </summary>
 		public Func<T, T> Filter {
-			get {
-				return pvtFilter;
-			}
+			get => pvtFilter;
 			set {
-				if(value == null) throw new ArgumentNullException(nameof(Filter));
+				if (value == null) throw new ArgumentNullException(nameof(Filter));
 				// New Filter should be applied to the existing Value
 				Value = pvtValue;
 			}
@@ -81,10 +79,11 @@ namespace RT.ValueFilter.Struct {
 		/// Assumes only the value matters, not the filter.
 		/// </summary>
 		public override bool Equals(object obj) {
-			if(obj is Filtered<T>) {
-				return EqualityComparer<T>.Default.Equals(this.Value, ((Filtered<T>)obj).Value);
-			} else if(obj is T) {
-				return EqualityComparer<T>.Default.Equals(this.Value, (T)obj);
+			if (obj is Filtered<T> objFilteredT) {
+				return EqualityComparer<T>.Default.Equals(this.Value, objFilteredT.Value);
+			}
+			if (obj is T objT) {
+				return EqualityComparer<T>.Default.Equals(this.Value, objT);
 			}
 			return false;
 		}
@@ -102,16 +101,13 @@ namespace RT.ValueFilter.Struct {
 		/// <summary>
 		/// Implicitly convert to the underlying type
 		/// </summary>
-		public static implicit operator T(Filtered<T> value) {
-			return value.Value;
-		}
+		public static implicit operator T(Filtered<T> value) => value.Value;
 
-		/// <summary>
-		/// This function returns a *new* instance with the same filter but a new value set.
-		/// </summary>
-
-
-
+		// Unfortunately not possible to convert the other way implicitly since the type
+		// here has no knowledge of the current filter. Would have to implement using a
+		// second generic parameter, which would require an instance of an object following
+		// a filter interface rather than a delegate. This would still incur the same overhead
+		// and would make it more difficult to create ad-hoc filters.
 
 	}
 

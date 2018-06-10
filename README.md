@@ -1,6 +1,6 @@
 Most C# Intrinsic Types are Weak
 ================================
-While we think of languages like C# as "strongly typed," we fail to recognize that for common types like `int` and `string`, the range of allowed values is far greater than the allowed range of the actual property. We use these intrinsic types because they are convenient, but often, this leaves our properties unproteted from a wide range of illegal values, which could result in undetected errors or malicious abuse. For example:
+While we think of languages like C# as "strongly typed," we fail to recognize that for common types like `int` and `string`, the range of allowed values is far greater than the allowed range of the actual property. We use these intrinsic types because they are convenient, but often, this leaves our properties unprotected from a wide range of illegal values, which could result in undetected errors or malicious abuse. For example:
 
 ```C#
 public class Customer {
@@ -28,7 +28,7 @@ However, this is not a robust solution. A few caveats:
 
 `String` is perhaps the most abused general-purpose type. Strings can have null values, empty values, lengths up to 2GB, and can contain any Unicode end point at any position, but it is *exceedingly rare* that you would want any string property to allow such flexibility.
 
-There are many ways to work around these issues. This library, `RT.ValueFilter`, is my own solution for .NET Standard 2.0. I hope it will be useful to others.
+There are many ways to work around these issues. This library, `RT.ValueFilter`, is my own solution for .NET. I hope it will be useful to others.
 
 How Does it Work?
 =================
@@ -175,13 +175,16 @@ Some of these counter-examples are from my own earlier code. :)
 
 VERSION HISTORY
 ===============
- -  2016-01-17	1.1.0	Initial Nuget release
- -  2016-08-09	1.2.0	Upgrade to .NET Core 1.0, cleanup, add (mostly empty) test project, reorg so both class and struct are named Filtered<T>
- -  2016-11-22  1.2.2   Upgrade to .NET Core 1.1 with multi-target for 4.5.1. Remove Regex compiled option (not supported in .NET Core?)
- -  2016-11-25  1.2.3   Update README, add more filters and tests, add implicit conversion for syntactic sugar.
- -  2017-04-04  1.2.4   Downgraded to csproj, targeting .NET Standard 1.1.
- -  2017-12-18  2.0.0   Upgraded target to .NET Standard 2.0, updated README
- 
+| Date | Version | Notes |
+| --- | --- | --- |
+| 2016-01-17 | 1.1.0 | Initial Nuget release
+| 2016-08-09 | 1.2.0 | Upgrade to .NET Core 1.0, cleanup, add (mostly empty) test project, reorg so both class and struct are named Filtered<T>
+| 2016-11-22 | 1.2.2 | Upgrade to .NET Core 1.1 with multi-target for 4.5.1. Remove Regex compiled option (not supported in .NET Core?)
+| 2016-11-25 | 1.2.3 | Update README, add more filters and tests, add implicit conversion for syntactic sugar.
+| 2017-04-04 | 1.2.4 | Downgraded to csproj, targeting .NET Standard 1.1.
+| 2017-12-18 | 2.0.0 | Upgraded target to .NET Standard 2.0, updated README
+| 2018-06-10 | 2.0.1 | Downgraded target to .NET Standard 1.0, updated README, minor code cleanup / formatting
+
 Status
 ======
 I've been using logic like this ad-hoc in my work, but this library is an attempt to centralize both the filtering concepts and a library of useful value filters.
@@ -189,10 +192,10 @@ I've been using logic like this ad-hoc in my work, but this library is an attemp
 Contributing
 ============
 This library is very new. Additional unit tests and generally-useful filters welcome. For pull requests:
- - Please limit to .NET Standard 2.0 compatibility.
- - Please use similar code formatting (tabs, braces, etc.).
- - If your filters make any culture/region assumptions, please document them.
- - All contributions should be made under the same license as this software (MIT).
+* Please limit to .NET Standard 1.0 compatibility.
+* Please use similar code formatting (OTBS, tabs, etc.).
+* If your filters make any culture/region assumptions, please document them.
+* All contributions should be made under the same license as this software (MIT).
 
 Code of Conduct
 ---------------
@@ -201,7 +204,7 @@ Code of Conduct
  3. If someone tells you you're being a jerk, assume they tried really hard to follow (2).
  4. Critique code, not people.
 
-*I don't actully anticipate this being an issue, but I've just seen many larger projects start to include these, so I wanted to see how short and sweet I could make one for my little projects that would encompass my personal philosophy.*
+*I don't actaully anticipate this being an issue, but I've just seen many larger projects start to include these, so I wanted to see how short and sweet I could make one for my little projects that would encompass my personal philosophy.*
 
 License (MIT "Expat")
 =====================
